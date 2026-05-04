@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BF Bites - Cantina Digital</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Sistema de Notificações -->
+    <div id="toast"></div>
+
+    <!-- 1. TELA INICIAL (SPLASH) -->
+    <section id="screen-splash" class="screen active">
+        <div class="logo-container">
+            <h1>BF Bites</h1>
+            <p>Sua cantina digital rápida e fácil</p>
+        </div>
+        <div style="width: 100%; max-width: 300px;">
+            <button class="btn btn-gold" onclick="app.irParaLogin('aluno')">SOU ALUNO</button>
+            <button class="btn btn-outline" style="color: white; border-color: white;" onclick="app.irParaLogin('funcionario')">SOU FUNCIONÁRIO</button>
+        </div>
+    </section>
+
+    <!-- 2. TELA DE LOGIN -->
+    <section id="screen-login" class="screen">
+        <div class="card">
+            <h2 id="login-title">Identificação</h2>
+            <div class="input-group">
+                <label for="user-name">Nome Completo</label>
+                <input type="text" id="user-name" placeholder="Digite seu nome...">
+            </div>
+            <button class="btn btn-primary" onclick="app.fazerLogin()">ENTRAR</button>
+            <button class="btn btn-outline" onclick="app.voltarParaHome()">VOLTAR</button>
+        </div>
+    </section>
+
+    <!-- 3. ÁREA DO ALUNO -->
+    <section id="screen-aluno" class="screen">
+        <header>
+            <h1>Olá, <span id="display-aluno-name" class="gold-text">Aluno</span></h1>
+            <p>O que vamos comer hoje?</p>
+        </header>
+
+        <div id="product-list" class="card" style="padding: 0;">
+            <!-- Produtos serão injetados aqui via JS -->
+        </div>
+
+        <div id="cart-container" class="cart-summary" style="display: none;">
+            <div>
+                <span id="cart-count">0</span> itens no carrinho
+            </div>
+            <button class="btn btn-gold" style="width: auto; margin: 0; padding: 10px 20px;" onclick="aluno.finalizarPedido()">
+                FINALIZAR
+            </button>
+        </div>
+        
+        <button class="btn btn-outline" onclick="app.voltarParaHome()" style="margin-top: 20px;">SAIR</button>
+    </section>
+
+    <!-- 4. ÁREA DO FUNCIONÁRIO -->
+    <section id="screen-funcionario" class="screen">
+        <header>
+            <h1>Painel de Pedidos</h1>
+            <p>Gerencie as entregas do dia</p>
+        </header>
+
+        <div id="orders-list">
+            <!-- Pedidos serão injetados aqui via JS -->
+        </div>
+
+        <button class="btn btn-outline" onclick="app.voltarParaHome()" style="margin-top: 20px;">SAIR</button>
+    </section>
+
+    <!-- Scripts -->
+    <script src="js/pedidos.js"></script>
+    <script src="js/aluno.js"></script>
+    <script src="js/funcionario.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
