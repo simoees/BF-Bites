@@ -3,11 +3,10 @@
 
 const DB = {
     produtos: [
-        { id: 1, nome: "Coxinha de Frango", preco: 5.50, estoque: 15 },
-        { id: 2, nome: "Kibe Recheado", preco: 5.00, estoque: 10 },
-        { id: 3, nome: "Enroladinho de Presunto", preco: 6.00, estoque: 0 },
-        { id: 4, nome: "Pão de Queijo Grande", preco: 4.50, estoque: 20 },
-        { id: 5, nome: "Suco Natural 300ml", preco: 7.00, estoque: 12 }
+        { id: 1, nome: "Esfirra de Frango", preco: 11.00, estoque: 20 },
+        { id: 2, nome: "Esfirra de Calabresa", preco: 11.00, estoque: 20 },
+        { id: 3, nome: "Esfirra de Presunto e Queijo", preco: 11.00, estoque: 20 },
+        { id: 4, nome: "Esfirra de Carne", preco: 11.00, estoque: 20 }
     ],
     pedidos: []
 };

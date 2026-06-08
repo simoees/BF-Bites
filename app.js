@@ -18,6 +18,10 @@ const app = {
     irParaLogin: function(role) {
         this.roleAtual = role;
         document.getElementById('login-title').innerText = `Entrar como ${role.charAt(0).toUpperCase() + role.slice(1)}`;
+        document.getElementById('user-name').placeholder = role === 'funcionario' ? 'Digite seu usuário...' : 'Digite seu nome...';
+        const passwordGroup = document.getElementById('password-group');
+        passwordGroup.style.display = role === 'funcionario' ? 'block' : 'none';
+        document.getElementById('user-password').value = '';
         this.mudarTela('screen-login');
     },
 
@@ -26,13 +30,21 @@ const app = {
     // retorno: valida campo e muda para tela do dashboard
     fazerLogin: function() {
         const nomeInput = document.getElementById('user-name');
-        
+        const senhaInput = document.getElementById('user-password');
+
         if (nomeInput.value.trim() === "") {
             this.mostrarToast("Por favor, digite seu nome", true);
             return;
         }
 
-        this.usuarioLogado = nomeInput.value;
+        if (this.roleAtual === 'funcionario') {
+            if (nomeInput.value.trim().toLowerCase() !== 'admin' || senhaInput.value !== '123') {
+                this.mostrarToast("Usuário ou senha inválidos", true);
+                return;
+            }
+        }
+
+        this.usuarioLogado = nomeInput.value.trim();
         
         if (this.roleAtual === 'aluno') {
             document.getElementById('display-aluno-name').innerText = this.usuarioLogado;
@@ -53,6 +65,7 @@ const app = {
         this.roleAtual = null;
         this.usuarioLogado = null;
         document.getElementById('user-name').value = "";
+        document.getElementById('user-password').value = "";
         this.mudarTela('screen-splash');
     },
 

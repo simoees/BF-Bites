@@ -3,10 +3,37 @@
 
 const funcionario = {
     
+    // Renderiza o controle de estoque e o painel de pedidos do funcionário
+    // parametro: nenhum
+    // retorno: atualiza o estoque e os pedidos na interface
+    renderizarEstoque: function() {
+        const estoqueContainer = document.getElementById('stock-summary');
+        const produtos = obterProdutos();
+
+        let estoqueHtml = `
+            <div class="card">
+                <h3>Controle de Estoque</h3>
+                ${produtos.map(prod => `
+                    <div class="product-item">
+                        <div class="product-info">
+                            <h3>${prod.nome}</h3>
+                            <span class="stock-tag ${prod.estoque <= 0 ? 'out-of-stock' : ''}">
+                                Estoque: ${prod.estoque}
+                            </span>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+
+        estoqueContainer.innerHTML = estoqueHtml;
+    },
+
     // Renderiza todos os pedidos na tela do funcionário
     // parametro: nenhum
     // retorno: insere cards de pedidos no elemento #orders-list
     renderizarPedidos: function() {
+        this.renderizarEstoque();
         const lista = document.getElementById('orders-list');
         const pedidos = obterPedidos();
 

@@ -75,6 +75,50 @@ const aluno = {
     finalizarPedido: function() {
         if (this.carrinho.length === 0) return;
 
+        const produtos = obterProdutos();
+        const quantidadePorProduto = this.carrinho.reduce((acc, item) => {
+            acc[item.id] = (acc[item.id] || 0) + 1;
+            return acc;
+        }, {});
+
+        const itensSemEstoque = [];
+        const itensDisponiveis = [];
+
+        Object.keys(quantidadePorProduto).forEach(id => {
+            const produto = produtos.find(p => p.id === Number(id));
+            const quantidadeSolicitada = quantidadePorProduto[id];
+            const quantidadeDisponivel = produto ? produto.estoque : 0;
+
+            if (!produto || quantidadeDisponivel === 0) {
+                itensSemEstoque.push(`${this.carrinho.find(item => item.id === Number(id)).nome}`);
+            } else if (quantidadeSolicitada > quantidadeDisponivel) {
+                itensSemEstoque.push(`${produto.nome} (apenas ${quantidadeDisponivel} disponível)`);
+                itensDisponiveis.push(...Array(quantidadeDisponivel).fill(produto));
+            } else {
+                itensDisponiveis.push(...Array(quantidadeSolicitada).fill(produto));
+            }
+        });
+
+        if (itensSemEstoque.length > 0) {
+            const mensagem = `Os seguintes itens estão sem estoque:\n- ${itensSemEstoque.join('\n- ')}\n\nDeseja concluir o pedido apenas com os itens disponíveis?`;
+            if (itensDisponiveis.length === 0) {
+                app.mostrarToast("Não há itens disponíveis para finalizar o pedido.", true);
+                return;
+            }
+
+            const confirmar = window.confirm(mensagem);
+            if (!confirmar) {
+                return;
+            }
+
+            this.carrinho = itensDisponiveis;
+        }
+
+        if (this.carrinho.length === 0) {
+            app.mostrarToast("Nenhum item disponível no momento.", true);
+            return;
+        }
+
         const total = this.carrinho.reduce((sum, item) => sum + item.preco, 0);
         const nomeAluno = document.getElementById('user-name').value;
 
