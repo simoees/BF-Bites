@@ -37,10 +37,21 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
-    padding: 18px 22px;
+    gap: 12px;
+    padding: 16px 20px;
     background: rgba(10, 27, 71, 0.96);
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.menu-home {
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--white);
+    font-size: 1.25rem;
+    justify-content: center;
 }
 
 .brand {
@@ -163,6 +174,14 @@ h1, h2, h3 {
 #screen-splash h1 {
     color: var(--gold);
     font-size: 3rem;
+}
+
+.screen header h1 {
+    color: var(--white);
+}
+
+.screen header p {
+    color: rgba(255, 255, 255, 0.9);
 }
 
 @media (max-width: 640px) {
