@@ -9,6 +9,8 @@ const app = {
     // parametro: nenhum
     // retorno: configura estados iniciais
     init: function() {
+        carregarBanco();
+        agendarResetDiario();
         console.log("BF Bites inicializado 🚀");
     },
 
@@ -51,7 +53,7 @@ const app = {
             aluno.renderizarProdutos();
             this.mudarTela('screen-aluno');
         } else {
-            funcionario.renderizarPedidos();
+            funcionario.renderizarFuncionario();
             this.mudarTela('screen-funcionario');
         }
         

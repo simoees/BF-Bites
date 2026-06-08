@@ -5,10 +5,11 @@ const DB = {
     produtos: [
         { id: 1, nome: "Esfirra de Frango", preco: 11.00, estoque: 20 },
         { id: 2, nome: "Esfirra de Calabresa", preco: 11.00, estoque: 20 },
-        { id: 3, nome: "Esfirra de Presunto e Queijo", preco: 11.00, estoque: 20 },
-        { id: 4, nome: "Esfirra de Carne", preco: 11.00, estoque: 20 }
+        { id: 3, nome: "Esfirra de Presunto e Queijo", preco: 11.00, estoque: 20 }
     ],
-    pedidos: []
+    pedidos: [],
+    historico: [],
+    currentDate: new Date().toLocaleDateString('pt-BR')
 };
 
 // Retorna a lista de produtos atualizada
@@ -25,11 +26,69 @@ function obterPedidos() {
     return DB.pedidos;
 }
 
-// Retorna o valor total de vendas acumulado nos pedidos
+// Retorna o valor total de vendas acumulado nos pedidos do dia atual
 // parametro: nenhum
 // retorno: número com o total das vendas
 function obterTotalVendas() {
     return DB.pedidos.reduce((sum, pedido) => sum + pedido.total, 0);
+}
+
+// Retorna o histórico de vendas dos dias anteriores
+function obterHistoricoVendas() {
+    return DB.historico;
+}
+
+function getDataAtual() {
+    return new Date().toLocaleDateString('pt-BR');
+}
+
+function salvarBanco() {
+    localStorage.setItem('bfBitesDB', JSON.stringify({
+        produtos: DB.produtos,
+        pedidos: DB.pedidos,
+        historico: DB.historico,
+        currentDate: DB.currentDate
+    }));
+}
+
+function carregarBanco() {
+    const dados = localStorage.getItem('bfBitesDB');
+    if (dados) {
+        const parsed = JSON.parse(dados);
+        if (parsed.produtos) DB.produtos = parsed.produtos;
+        if (parsed.pedidos) DB.pedidos = parsed.pedidos;
+        if (parsed.historico) DB.historico = parsed.historico;
+        if (parsed.currentDate) DB.currentDate = parsed.currentDate;
+    }
+    resetDoDiaSeNecessario();
+}
+
+function resetDoDiaSeNecessario() {
+    const hoje = getDataAtual();
+    if (DB.currentDate !== hoje) {
+        const total = obterTotalVendas();
+        const count = DB.pedidos.length;
+        if (count > 0) {
+            DB.historico.unshift({
+                date: DB.currentDate,
+                total: total,
+                pedidos: count
+            });
+        }
+        DB.pedidos = [];
+        DB.currentDate = hoje;
+        salvarBanco();
+    }
+}
+
+function agendarResetDiario() {
+    const agora = new Date();
+    const proximoDia = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate() + 1, 0, 0, 5);
+    const atraso = proximoDia.getTime() - agora.getTime();
+    setTimeout(() => {
+        resetDoDiaSeNecessario();
+        agendarResetDiario();
+    }, atraso);
 }
 
 // Gera um ID único para o novo pedido
@@ -61,6 +120,7 @@ function salvarPedido(dados) {
     });
 
     DB.pedidos.unshift(novoPedido); // Adiciona no início da lista
+    salvarBanco();
     return novoPedido;
 }
 
@@ -71,6 +131,7 @@ function marcarComoEntregue(id) {
     const pedido = DB.pedidos.find(p => p.id === id);
     if (pedido) {
         pedido.status = 'entregue';
+        salvarBanco();
         return true;
     }
     return false;
