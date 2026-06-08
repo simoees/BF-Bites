@@ -30,30 +30,6 @@ body {
     overflow-x: hidden;
 }
 
-.topbar {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 16px 20px;
-    background: rgba(10, 27, 71, 0.96);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.menu-home {
-    width: 48px;
-    height: 48px;
-    padding: 0;
-    border-radius: 14px;
-    background: rgba(255, 255, 255, 0.08);
-    color: var(--white);
-    font-size: 1.25rem;
-    justify-content: center;
-}
-
 .brand {
     display: flex;
     align-items: center;
