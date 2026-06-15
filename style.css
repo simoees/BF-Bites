@@ -181,16 +181,47 @@ h1, h2, h3 {
 }
 
 .func-footer-menu {
-    display: flex;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
     gap: 10px;
-    flex-wrap: wrap;
-    justify-content: center;
-    margin-top: 20px;
+    padding: 12px 16px;
+    background: rgba(26, 42, 108, 0.98);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 -8px 20px rgba(0, 0, 0, 0.15);
+    z-index: 50;
+}
+
+.func-footer-menu .btn {
+    width: 100%;
+    min-width: 0;
+    padding: 14px 8px;
+    border-radius: 999px;
+    font-size: 0.9rem;
 }
 
 .func-footer-menu .btn.active {
     opacity: 1;
     filter: brightness(0.95);
+}
+
+.screen-funcionario {
+    padding-bottom: 120px;
+}
+
+@media (max-width: 640px) {
+    .func-footer-menu {
+        gap: 8px;
+        padding: 10px;
+    }
+
+    .func-footer-menu .btn {
+        padding: 12px 10px;
+        font-size: 0.9rem;
+    }
 }
 
 .stock-actions {

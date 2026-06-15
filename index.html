@@ -65,7 +65,7 @@
     </section>
 
     <!-- 4. ÁREA DO FUNCIONÁRIO -->
-    <section id="screen-funcionario" class="screen">
+    <section id="screen-funcionario" class="screen screen-funcionario">
         <header>
             <h1>Painel do Funcionário</h1>
             <p>Estoque, pedidos e caixa separados</p>
@@ -81,9 +81,8 @@
             <button class="btn btn-gold btn-sm active" data-tab="pedidos" onclick="funcionario.mostrarSecao('pedidos')">Pedidos</button>
             <button class="btn btn-gold btn-sm" data-tab="estoque" onclick="funcionario.mostrarSecao('estoque')">Estoque</button>
             <button class="btn btn-gold btn-sm" data-tab="caixa" onclick="funcionario.mostrarSecao('caixa')">Caixa</button>
+            <button class="btn btn-outline btn-sm" data-tab="sair" onclick="app.voltarParaHome()">Sair</button>
         </div>
-
-        <button class="btn btn-gold" onclick="app.voltarParaHome()" style="margin-top: 20px;">SAIR</button>
     </section>
 
     <!-- Scripts -->

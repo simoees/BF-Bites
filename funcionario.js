@@ -30,22 +30,13 @@ const funcionario = {
         const dataHoje = getDataAtual();
         const historico = obterHistoricoVendas();
 
-        const historicoHtml = historico.slice(0, 5).map((item, idx) => `
-            <div class="history-row">
-                <span class="history-date">${item.date}</span>
-                <span class="history-pedidos">${item.pedidos} pedidos</span>
-                <span class="history-produtos">${item.produtos || 0} itens</span>
-                <span class="history-valor">R$ ${item.total.toFixed(2)}</span>
-            </div>
-        `).join('');
-
         caixaContainer.innerHTML = `
             <div class="card cash-card">
                 <div class="cash-header">
-                    <h3>💰 Controle de Caixa</h3>
+                    <h3>💰 Total de Caixa</h3>
                     <span class="cash-date">${dataHoje}</span>
                 </div>
-                
+
                 <div class="cash-today">
                     <div class="cash-stat">
                         <span class="stat-label">Total de Pedidos</span>
@@ -56,24 +47,9 @@ const funcionario = {
                         <span class="stat-value">${totalProdutosVendidos}</span>
                     </div>
                     <div class="cash-stat">
-                        <span class="stat-label">Lucro do Dia</span>
+                        <span class="stat-label">Dinheiro Acumulado Hoje</span>
                         <span class="stat-value gold-large">R$ ${totalVendas.toFixed(2)}</span>
                     </div>
-                </div>
-
-                <div class="cash-history">
-                    <h4>📋 Histórico de Vendas</h4>
-                    ${historicoHtml ? `
-                        <div class="history-table">
-                            <div class="history-header">
-                                <span>Data</span>
-                                <span>Pedidos</span>
-                                <span>Itens</span>
-                                <span>Total</span>
-                            </div>
-                            ${historicoHtml}
-                        </div>
-                    ` : '<p style="text-align:center; color:#999;">Nenhum registro anterior</p>'}
                 </div>
             </div>
         `;
