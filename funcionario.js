@@ -23,9 +23,10 @@ const funcionario = {
 
     renderizarCaixa: function() {
         const caixaContainer = document.getElementById('cash-section');
-        const totalVendas = obterTotalVendas();
-        const totalPedidos = obterPedidos().length;
-        const totalProdutosVendidos = obterPedidos().reduce((sum, p) => sum + p.itens.length, 0);
+        const totalVendas = obterTotalVendas('entregue');
+        const pedidosEntregues = obterPedidos().filter(p => p.status === 'entregue');
+        const totalPedidos = pedidosEntregues.length;
+        const totalProdutosVendidos = pedidosEntregues.reduce((sum, p) => sum + p.itens.length, 0);
         const dataHoje = getDataAtual();
         const historico = obterHistoricoVendas();
 

@@ -27,10 +27,11 @@ function obterPedidos() {
 }
 
 // Retorna o valor total de vendas acumulado nos pedidos do dia atual
-// parametro: nenhum
-// retorno: número com o total das vendas
-function obterTotalVendas() {
-    return DB.pedidos.reduce((sum, pedido) => sum + pedido.total, 0);
+// parametro: status opcional ('entregue' ou 'pendente')
+// retorno: número com o total das vendas filtradas
+function obterTotalVendas(status = null) {
+    const pedidos = status ? DB.pedidos.filter(p => p.status === status) : DB.pedidos;
+    return pedidos.reduce((sum, pedido) => sum + pedido.total, 0);
 }
 
 // Retorna o histórico de vendas dos dias anteriores
@@ -66,9 +67,11 @@ function carregarBanco() {
 function resetDoDiaSeNecessario() {
     const hoje = getDataAtual();
     if (DB.currentDate !== hoje) {
-        const total = obterTotalVendas();
-        const count = DB.pedidos.length;
-        const produtos = DB.pedidos.reduce((sum, p) => sum + p.itens.length, 0);
+        const pedidosDoDia = DB.pedidos.filter(p => p.status === 'entregue');
+        const pedidosPendentes = DB.pedidos.filter(p => p.status !== 'entregue');
+        const total = pedidosDoDia.reduce((sum, pedido) => sum + pedido.total, 0);
+        const count = pedidosDoDia.length;
+        const produtos = pedidosDoDia.reduce((sum, p) => sum + p.itens.length, 0);
         if (count > 0) {
             DB.historico.unshift({
                 date: DB.currentDate,
@@ -77,7 +80,7 @@ function resetDoDiaSeNecessario() {
                 produtos: produtos
             });
         }
-        DB.pedidos = [];
+        DB.pedidos = pedidosPendentes;
         DB.currentDate = hoje;
         salvarBanco();
     }
