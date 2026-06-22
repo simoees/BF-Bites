@@ -33,14 +33,17 @@ const funcionario = {
         lista.innerHTML = '<div class="card"><h3>Pedidos Recebidos</h3></div>';
         pedidos.forEach(pedido => {
             const isEntregue = pedido.status === 'entregue';
+            const isRecusado = pedido.status === 'recusado';
+            const statusClass = pedido.status === 'entregue' ? 'status-delivered' : (pedido.status === 'recusado' ? 'status-refused' : 'status-pending');
+            const cardClass = isEntregue ? 'delivered' : (isRecusado ? 'refused' : '');
             const itensHtml = pedido.itens.map(item => `<li>${item.nome}</li>`).join('');
 
             const pedidoHtml = `
-                <div class="card order-card ${isEntregue ? 'delivered' : ''}">
+                <div class="card order-card ${cardClass}">
                     <div class="order-header">
                         <div>
                             <h3>${pedido.aluno}</h3>
-                            <span class="status-badge ${isEntregue ? 'status-delivered' : 'status-pending'}">${pedido.status}</span>
+                            <span class="status-badge ${statusClass}">${pedido.status}</span>
                         </div>
                         <span class="gold-text">${pedido.id}</span>
                     </div>
@@ -49,8 +52,11 @@ const funcionario = {
                         <strong>Total: R$ ${pedido.total.toFixed(2)}</strong>
                         <span>${pedido.data}</span>
                     </div>
-                    ${!isEntregue ? `
-                        <button class="btn btn-primary btn-sm" onclick="funcionario.confirmarEntrega('${pedido.id}')">ACEITAR PEDIDO</button>
+                    ${pedido.status === 'pendente' ? `
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn btn-primary btn-sm" style="margin: 0;" onclick="funcionario.confirmarEntrega('${pedido.id}')">ACEITAR PEDIDO</button>
+                            <button class="btn btn-outline btn-sm" style="margin: 0; border-color: var(--error); color: var(--error);" onclick="funcionario.confirmarRecusa('${pedido.id}')">RECUSAR</button>
+                        </div>
                     ` : ''}
                 </div>
             `;
@@ -59,7 +65,7 @@ const funcionario = {
     },
 
     renderizarEstoque: function() {
-        const estoqueContainer = document.getElementById('stock-section');
+        const estoqueContainer = document.getElementById('estoque-section');
         const produtos = obterProdutos();
 
         const produtosHtml = produtos.map(prod => `
@@ -106,12 +112,44 @@ const funcionario = {
     },
 
     renderizarCaixa: function() {
-        const caixaContainer = document.getElementById('cash-section');
+        const caixaContainer = document.getElementById('caixa-section');
         const totalVendas = obterTotalVendas('entregue');
         const pedidosEntregues = obterPedidos().filter(p => p.status === 'entregue');
         const totalPedidos = pedidosEntregues.length;
         const totalProdutosVendidos = pedidosEntregues.reduce((sum, p) => sum + p.itens.length, 0);
         const dataHoje = getDataAtual();
+
+        // Gerar HTML de Fechamentos Diários
+        const historico = obterHistoricoVendas();
+        let historicoHtml = '';
+        if (historico.length > 0) {
+            historicoHtml = historico.map(h => `
+                <div class="history-row">
+                    <span class="history-date">${h.date}</span>
+                    <span class="history-pedidos">${h.pedidos} ped.</span>
+                    <span class="history-produtos">${h.produtos} prod.</span>
+                    <span class="history-valor">R$ ${h.total.toFixed(2)}</span>
+                </div>
+            `).join('');
+        } else {
+            historicoHtml = '<p style="padding: 15px; text-align: center; color: #999; font-size: 0.9rem;">Nenhum fechamento registrado.</p>';
+        }
+
+        // Gerar HTML de Relatório Mensal
+        const relatorioMensal = obterRelatorioMensal();
+        let relatorioHtml = '';
+        if (relatorioMensal.length > 0) {
+            relatorioHtml = relatorioMensal.map(r => `
+                <div class="history-row" style="background: #fff8eb; font-weight: 600;">
+                    <span class="history-date" style="color: var(--gold-dark);">${r.mesAno}</span>
+                    <span class="history-pedidos">${r.pedidos} ped.</span>
+                    <span class="history-produtos">${r.produtos} prod.</span>
+                    <span class="history-valor">R$ ${r.total.toFixed(2)}</span>
+                </div>
+            `).join('');
+        } else {
+            relatorioHtml = '<p style="padding: 15px; text-align: center; color: #999; font-size: 0.9rem;">Nenhum dado mensal registrado.</p>';
+        }
 
         caixaContainer.innerHTML = `
             <h3 style="margin-top: 0;">💰 Caixa</h3>
@@ -129,6 +167,36 @@ const funcionario = {
                 <div class="cash-stat" style="grid-column: 1/-1; justify-content: center;">
                     <span class="stat-label">💵 Valor Acumulado</span>
                     <span class="stat-value gold-large">R$ ${totalVendas.toFixed(2)}</span>
+                </div>
+            </div>
+
+            <button class="btn btn-outline" style="border-color: var(--gold-dark); color: var(--gold-dark); margin-bottom: 25px;" onclick="funcionario.encerrarExpedienteManual()">
+                🔒 Encerrar Expediente de Hoje
+            </button>
+
+            <div class="cash-history">
+                <h4>Fechamentos Diários</h4>
+                <div class="history-table">
+                    <div class="history-header">
+                        <span>Data</span>
+                        <span>Pedidos</span>
+                        <span>Itens</span>
+                        <span>Valor</span>
+                    </div>
+                    ${historicoHtml}
+                </div>
+            </div>
+
+            <div class="cash-history" style="margin-top: 25px;">
+                <h4>Relatório Mensal de Vendas</h4>
+                <div class="history-table">
+                    <div class="history-header" style="background: var(--gold-dark);">
+                        <span>Mês/Ano</span>
+                        <span>Pedidos</span>
+                        <span>Itens</span>
+                        <span>Valor</span>
+                    </div>
+                    ${relatorioHtml}
                 </div>
             </div>
         `;
@@ -182,6 +250,31 @@ const funcionario = {
             app.mostrarToast('Pedido aceito e caixa atualizado!');
             this.renderizarPedidos();
             this.renderizarCaixa();
+            this.renderizarEstoque();
+        }
+    },
+
+    confirmarRecusa: function(id) {
+        const confirmar = window.confirm("Deseja realmente recusar este pedido?");
+        if (!confirmar) return;
+
+        if (recusarPedido(id)) {
+            app.mostrarToast('Pedido recusado.', true);
+            this.renderizarPedidos();
+        }
+    },
+
+    encerrarExpedienteManual: function() {
+        const confirmar = window.confirm("Deseja realmente encerrar o expediente de hoje? Isso salvará as vendas atuais no histórico e reiniciará o caixa.");
+        if (!confirmar) return;
+
+        const resultado = encerrarExpediente();
+        if (resultado.sucesso) {
+            app.mostrarToast(resultado.mensagem);
+            this.renderizarCaixa();
+            this.renderizarPedidos();
+        } else {
+            app.mostrarToast(resultado.mensagem, true);
         }
     }
 };
