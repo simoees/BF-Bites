@@ -21,9 +21,20 @@ const app = {
         this.roleAtual = role;
         document.getElementById('login-title').innerText = `Entrar como ${role.charAt(0).toUpperCase() + role.slice(1)}`;
         document.getElementById('user-name').placeholder = role === 'funcionario' ? 'Digite seu usuário...' : 'Digite seu nome...';
+        
+        // Exibir grupo de senha para ambos
         const passwordGroup = document.getElementById('password-group');
-        passwordGroup.style.display = role === 'funcionario' ? 'block' : 'none';
+        if (passwordGroup) passwordGroup.style.display = 'block';
+        
+        document.getElementById('user-name').value = '';
         document.getElementById('user-password').value = '';
+
+        // Exibir ou ocultar o botão de cadastrar aluno
+        const btnCadastro = document.getElementById('btn-cadastro-aluno');
+        if (btnCadastro) {
+            btnCadastro.style.display = role === 'aluno' ? 'block' : 'none';
+        }
+
         this.mudarTela('screen-login');
     },
 
@@ -33,31 +44,69 @@ const app = {
     fazerLogin: function() {
         const nomeInput = document.getElementById('user-name');
         const senhaInput = document.getElementById('user-password');
+        const username = nomeInput.value.trim();
+        const password = senhaInput.value;
 
-        if (nomeInput.value.trim() === "") {
+        if (username === "") {
             this.mostrarToast("Por favor, digite seu nome", true);
             return;
         }
 
         if (this.roleAtual === 'funcionario') {
-            if (nomeInput.value.trim().toLowerCase() !== 'admin' || senhaInput.value !== '123') {
+            if (username.toLowerCase() !== 'admin' || password !== '123') {
                 this.mostrarToast("Usuário ou senha inválidos", true);
                 return;
             }
-        }
-
-        this.usuarioLogado = nomeInput.value.trim();
-        
-        if (this.roleAtual === 'aluno') {
+            this.usuarioLogado = username;
+            funcionario.renderizarFuncionario();
+            this.mudarTela('screen-funcionario');
+            this.mostrarToast(`Bem-vindo, ${this.usuarioLogado}!`);
+        } else {
+            // Login de aluno cadastrado
+            const usuario = DB.usuarios.find(u => u.username.toLowerCase() === username.toLowerCase());
+            if (!usuario) {
+                this.mostrarToast("Aluno não cadastrado. Clique em CADASTRAR NOVO ALUNO", true);
+                return;
+            }
+            if (usuario.password !== password) {
+                this.mostrarToast("Senha incorreta", true);
+                return;
+            }
+            this.usuarioLogado = usuario.username;
             document.getElementById('display-aluno-name').innerText = this.usuarioLogado;
             aluno.renderizarProdutos();
             this.mudarTela('screen-aluno');
-        } else {
-            funcionario.renderizarFuncionario();
-            this.mudarTela('screen-funcionario');
+            this.mostrarToast(`Bem-vindo, ${this.usuarioLogado}!`);
         }
+    },
+
+    // Realiza o cadastro do novo aluno e faz login automático
+    fazerCadastro: function() {
+        const nomeInput = document.getElementById('user-name');
+        const senhaInput = document.getElementById('user-password');
+        const username = nomeInput.value.trim();
+        const password = senhaInput.value;
+
+        if (username === "" || password === "") {
+            this.mostrarToast("Preencha usuário e senha para cadastrar", true);
+            return;
+        }
+
+        const existe = DB.usuarios.some(u => u.username.toLowerCase() === username.toLowerCase());
+        if (existe) {
+            this.mostrarToast("Este nome de usuário já está cadastrado", true);
+            return;
+        }
+
+        DB.usuarios.push({ username, password });
+        salvarBanco();
         
-        this.mostrarToast(`Bem-vindo, ${this.usuarioLogado}!`);
+        this.usuarioLogado = username;
+        this.mostrarToast("Cadastro realizado com sucesso! 🎉");
+        
+        document.getElementById('display-aluno-name').innerText = this.usuarioLogado;
+        aluno.renderizarProdutos();
+        this.mudarTela('screen-aluno');
     },
 
     // Volta para a tela inicial e reseta dados temporários
