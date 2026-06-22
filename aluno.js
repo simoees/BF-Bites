@@ -120,7 +120,7 @@ const aluno = {
         }
 
         const total = this.carrinho.reduce((sum, item) => sum + item.preco, 0);
-        const nomeAluno = document.getElementById('user-name').value;
+        const nomeAluno = app.usuarioLogado || document.getElementById('user-name').value || "Aluno";
 
         const pedidoRealizado = salvarPedido({
             aluno: nomeAluno,
