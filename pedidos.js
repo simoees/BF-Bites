@@ -11,6 +11,7 @@ const DB = {
     produtos: [...PRODUTOS_PADRAO],
     pedidos: [],
     historico: [],
+    usuarios: [],
     currentDate: new Date().toLocaleDateString('pt-BR')
 };
 
@@ -50,6 +51,7 @@ function salvarBanco() {
         produtos: DB.produtos,
         pedidos: DB.pedidos,
         historico: DB.historico,
+        usuarios: DB.usuarios,
         currentDate: DB.currentDate
     }));
 }
@@ -61,6 +63,7 @@ function carregarBanco() {
         if (parsed.produtos) DB.produtos = parsed.produtos;
         if (parsed.pedidos) DB.pedidos = parsed.pedidos;
         if (parsed.historico) DB.historico = parsed.historico;
+        if (parsed.usuarios) DB.usuarios = parsed.usuarios;
         if (parsed.currentDate) DB.currentDate = parsed.currentDate;
     }
 
@@ -135,28 +138,111 @@ function salvarPedido(dados) {
         data: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
     };
 
-    // Abater estoque
-    dados.itens.forEach(item => {
-        const produto = DB.produtos.find(p => p.id === item.id);
-        if (produto) {
-            produto.estoque -= 1;
-        }
-    });
-
     DB.pedidos.unshift(novoPedido); // Adiciona no início da lista
     salvarBanco();
     return novoPedido;
 }
 
-// Atualiza o status de um pedido para entregue
+// Atualiza o status de um pedido para entregue se houver estoque
 // parametro: id do pedido
 // retorno: booleano indicando sucesso
 function marcarComoEntregue(id) {
     const pedido = DB.pedidos.find(p => p.id === id);
+    if (!pedido) return false;
+
+    // Verificar se há estoque disponível para todos os itens do pedido
+    const contagemItens = pedido.itens.reduce((acc, item) => {
+        acc[item.id] = (acc[item.id] || 0) + 1;
+        return acc;
+    }, {});
+
+    const itensSemEstoque = [];
+    for (const itemId in contagemItens) {
+        const prod = DB.produtos.find(p => p.id === Number(itemId));
+        if (!prod || prod.estoque < contagemItens[itemId]) {
+            itensSemEstoque.push(prod ? prod.nome : "Produto desconhecido");
+        }
+    }
+
+    if (itensSemEstoque.length > 0) {
+        app.mostrarToast(`Sem estoque suficiente para: ${itensSemEstoque.join(', ')}`, true);
+        return false;
+    }
+
+    // Abater estoque na aceitação do pedido
+    pedido.itens.forEach(item => {
+        const prod = DB.produtos.find(p => p.id === item.id);
+        if (prod) {
+            prod.estoque -= 1;
+        }
+    });
+
+    pedido.status = 'entregue';
+    salvarBanco();
+    return true;
+}
+
+// Recusa um pedido pendente
+function recusarPedido(id) {
+    const pedido = DB.pedidos.find(p => p.id === id);
     if (pedido) {
-        pedido.status = 'entregue';
+        pedido.status = 'recusado';
         salvarBanco();
         return true;
     }
     return false;
+}
+
+// Encerra o expediente consolidando os dados do caixa do dia atual
+function encerrarExpediente() {
+    const hoje = getDataAtual();
+    const pedidosDoDia = DB.pedidos.filter(p => p.status === 'entregue');
+    const total = pedidosDoDia.reduce((sum, pedido) => sum + pedido.total, 0);
+    const count = pedidosDoDia.length;
+    const produtos = pedidosDoDia.reduce((sum, p) => sum + p.itens.length, 0);
+
+    if (count === 0 && total === 0) {
+        return { sucesso: false, mensagem: "Nenhuma venda realizada hoje para encerrar." };
+    }
+
+    DB.historico.unshift({
+        date: hoje + ' (Fechamento Manual)',
+        total: total,
+        pedidos: count,
+        produtos: produtos
+    });
+
+    // Remove os pedidos entregues ativos da lista
+    DB.pedidos = DB.pedidos.filter(p => p.status !== 'entregue');
+
+    salvarBanco();
+    return { sucesso: true, mensagem: "Expediente encerrado com sucesso! Caixa reiniciado." };
+}
+
+// Retorna relatório de vendas agrupado por mês e ano
+function obterRelatorioMensal() {
+    const relatorio = {};
+
+    DB.historico.forEach(entry => {
+        const match = entry.date.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+        if (match) {
+            const mes = match[2];
+            const ano = match[3];
+            const chave = `${mes}/${ano}`;
+
+            if (!relatorio[chave]) {
+                relatorio[chave] = {
+                    mesAno: chave,
+                    total: 0,
+                    pedidos: 0,
+                    produtos: 0
+                };
+            }
+            relatorio[chave].total += entry.total;
+            relatorio[chave].pedidos += entry.pedidos;
+            relatorio[chave].produtos += entry.produtos;
+        }
+    });
+
+    return Object.values(relatorio);
 }
