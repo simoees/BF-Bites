@@ -46,6 +46,24 @@ function getDataAtual() {
     return new Date().toLocaleDateString('pt-BR');
 }
 
+function getFirestoreStateDocRef() {
+    if (!window.dbFirebase) return null;
+    return window.dbFirebase.collection('bfBites').doc('appState');
+}
+
+async function salvarBancoFirebase() {
+    const ref = getFirestoreStateDocRef();
+    if (!ref) return;
+
+    await ref.set({
+        produtos: DB.produtos,
+        pedidos: DB.pedidos,
+        historico: DB.historico,
+        usuarios: DB.usuarios,
+        currentDate: DB.currentDate
+    }, { merge: true });
+}
+
 function salvarBanco() {
     localStorage.setItem('bfBitesDB', JSON.stringify({
         produtos: DB.produtos,
@@ -54,6 +72,36 @@ function salvarBanco() {
         usuarios: DB.usuarios,
         currentDate: DB.currentDate
     }));
+
+    if (window.dbFirebase) {
+        salvarBancoFirebase().catch(err => {
+            console.warn('Erro salvando dados no Firebase:', err);
+        });
+    }
+}
+
+async function carregarBancoFirebase() {
+    const ref = getFirestoreStateDocRef();
+    if (!ref) return;
+
+    try {
+        const doc = await ref.get();
+        if (!doc.exists) return;
+
+        const remote = doc.data();
+        if (!remote) return;
+
+        DB.produtos = Array.isArray(remote.produtos) && remote.produtos.length ? remote.produtos : DB.produtos;
+        DB.pedidos = Array.isArray(remote.pedidos) ? remote.pedidos : DB.pedidos;
+        DB.historico = Array.isArray(remote.historico) ? remote.historico : DB.historico;
+        DB.usuarios = Array.isArray(remote.usuarios) ? remote.usuarios : DB.usuarios;
+        DB.currentDate = remote.currentDate || DB.currentDate;
+
+        resetDoDiaSeNecessario();
+        salvarBanco();
+    } catch (error) {
+        console.warn('Erro carregando dados do Firebase:', error);
+    }
 }
 
 function carregarBanco() {
@@ -78,6 +126,12 @@ function carregarBanco() {
     }
 
     resetDoDiaSeNecessario();
+
+    if (window.dbFirebase) {
+        carregarBancoFirebase().catch(err => {
+            console.warn('Falha ao sincronizar com Firebase, usando localStorage:', err);
+        });
+    }
 }
 
 function resetDoDiaSeNecessario() {
